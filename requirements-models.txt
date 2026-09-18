@@ -1,0 +1,7 @@
+# Optional dependencies for the model-scoring scripts.
+# Install the official AntiFold and AntiBERTy repositories/checkpoints separately.
+numpy>=1.23
+pandas>=1.5
+torch>=2.0
+transformers>=4.30
+

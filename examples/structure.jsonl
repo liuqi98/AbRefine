@@ -1,0 +1,2 @@
+{"patch_id":"demo:H3:0","target_id":"demo","region":"H3","native_amino_acid":"A","log_probabilities":[-0.2,-2.0,-3.0,-3.0,-3.0,-3.0,-3.0,-3.0,-3.0,-3.0,-3.0,-3.0,-3.0,-3.0,-3.0,-3.0,-3.0,-3.0,-3.0,-3.0],"native_CDR_tokens_visible":false}
+{"patch_id":"demo:H3:1","target_id":"demo","region":"H3","native_amino_acid":"C","log_probabilities":[-2.0,-1.0,-2.5,-2.5,-2.5,-2.5,-2.5,-2.5,-2.5,-2.5,-2.5,-2.5,-2.5,-2.5,-2.5,-2.5,-2.5,-2.5,-2.5,-2.5],"native_CDR_tokens_visible":false}

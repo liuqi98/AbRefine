@@ -1,0 +1,43 @@
+{
+  "method": {
+    "base": "official original AntiFold",
+    "continued_ce_comparator": false,
+    "evolution_expert": "AntiBERTy with every CDR residue masked simultaneously",
+    "fusion": "fixed product of experts",
+    "weight": 0.59,
+    "residue_gate": false
+  },
+  "primary_recent_panel": {
+    "targets": 100,
+    "residues": 5065,
+    "antifold_recovery": 0.648488,
+    "open_loop_recovery": 0.680296,
+    "open_loop_difference": 0.031808,
+    "open_loop_ci95": [0.0206, 0.0436],
+    "closed_loop_recovery": 0.680189,
+    "closed_loop_difference": 0.031701,
+    "closed_loop_ci95": [0.0180, 0.0458]
+  },
+  "secondary_family_disjoint_reserve": {
+    "targets": 75,
+    "residues": 3848,
+    "antifold_recovery": 0.655072,
+    "open_loop_recovery": 0.669808,
+    "open_loop_difference": 0.014736,
+    "open_loop_ci95": [0.000665, 0.028550],
+    "closed_loop_recovery": 0.665081,
+    "closed_loop_difference": 0.010009,
+    "closed_loop_ci95": [-0.006208, 0.025903]
+  },
+  "entropy_stratification_difference": {
+    "low": 0.004403,
+    "middle": 0.036068,
+    "high": 0.056432
+  },
+  "closed_loop_transitions": {
+    "wrong_to_correct": 385,
+    "correct_to_wrong": 227,
+    "net_corrections": 158
+  }
+}
+
