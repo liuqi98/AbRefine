@@ -177,6 +177,7 @@ tests/                              Unit tests
 - No continued-CE checkpoint is compared.
 - The fusion weight is selected on a separate development set.
 - The exact same `g=0.59` is used on the public split, recent external panel and family-disjoint reserve; no dataset-, target- or CDR-specific test tuning is permitted.
+- Historical RAbD analyses informed earlier exploration and are not counted as present benchmark evidence; only the current scoring protocols, not the entire research history, are described as frozen.
 - Antibody targets, not residues, are the independent bootstrap units.
 - The public AntiFold/AbMPNN split provides community-split comparability; 362/405 paired Fabs are reconstructable locally and coverage is reported explicitly.
 - Published AntiFold numbers use full sequence context, whereas this repository's matched comparison hides every native CDR token; these conditioning protocols are not mixed.
