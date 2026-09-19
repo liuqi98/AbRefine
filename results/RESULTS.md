@@ -1,6 +1,21 @@
 # Frozen benchmark results
 
-## Primary recent non-RAbD panel
+## Public AntiFold/AbMPNN SAbDab test split
+
+- Public Zenodo 8164693 split: 405 deduplicated test Fab units.
+- Locally reconstructable paired coverage: 362/405 Fabs (89.4%), 17,945 CDR residues.
+- Strict matched protocol: native framework and paired backbone visible; every native CDR token hidden from both experts.
+- Fixed `g=0.59` transferred without refitting on the public test split.
+
+| Endpoint | Official AntiFold | Fixed PoE | Change | 95% CI |
+|---|---:|---:|---:|---:|
+| Open-loop target-macro recovery | 68.89% | 70.33% | **+1.44 pp** | [+0.67, +2.20] |
+| Closed-loop target-macro recovery | 68.89% | 69.67% | +0.77 pp | [-0.09, +1.64] |
+| Closed-loop target-macro NLL | 1.1728 | 1.0842 | **-0.0887** | [-0.1167, -0.0612] |
+
+Closed-loop recovery improves significantly in H1 (+2.15 pp) and H2 (+4.30 pp), but H3, L1 and L3 have small negative point estimates. The standard split therefore supports transferable open-loop recovery and closed-loop likelihood improvements, not a universal closed-loop top-1 gain.
+
+## Recent external non-RAbD panel
 
 - 100 paired antibodies, 200 chains and 5,065 evaluated CDR residues.
 - Release dates: 2024-01-23 through 2026-02-23.
@@ -29,4 +44,3 @@ The equal-PoE result is a test-set ablation. The primary method remains `g=0.59`
 | Closed-loop NLL | 1.3108 | 1.1925 | -0.1182 | [-0.1823, -0.0558] |
 
 The reserve contains 75 paired antibodies and 3,848 CDR residues. Heavy-chain antibody-90%, antigen-90%, and joint connected components are disjoint; light-chain families are not fully disjoint. It is not described as temporal post-cutoff data.
-
