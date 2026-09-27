@@ -1,46 +1,43 @@
-# Frozen benchmark results
+# Frozen AbRefine results
 
-## Public AntiFold/AbMPNN SAbDab test split
+All evaluation models and preprocessing parameters were selected using only
+the 62-antibody development cohort (3,077 CDR residues). Values are
+target-macro averages; intervals are paired 10,000-replicate target bootstrap
+intervals.
 
-- Public Zenodo 8164693 split: 405 deduplicated test Fab units.
-- Locally reconstructable paired coverage: 362/405 Fabs (89.4%), 17,945 CDR residues.
-- Strict matched protocol: native framework and paired backbone visible; every native CDR token hidden from both experts.
-- Fixed `g=0.59` transferred without refitting on the public test split.
+## Cross-cohort generalization
 
-| Endpoint | Official AntiFold | Fixed PoE | Change | 95% CI |
-|---|---:|---:|---:|---:|
-| Open-loop target-macro recovery | 68.89% | 70.33% | **+1.44 pp** | [+0.67, +2.20] |
-| Closed-loop target-macro recovery | 68.89% | 69.67% | +0.77 pp | [-0.09, +1.64] |
-| Closed-loop target-macro NLL | 1.1728 | 1.0842 | **-0.0887** | [-0.1167, -0.0612] |
+| Cohort | Targets | Residues | AntiFold | IAF | Change (95% CI) | AntiFold NLL | IAF NLL | NLL change (95% CI) |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Public exact-PDB-disjoint | 359 | 17,816 | 68.91% | **71.17%** | **+2.25 pp** [+1.66, +2.86] | 1.1709 | **1.0352** | **-0.1357** [-0.1544, -0.1178] |
+| Recent external | 100 | 5,065 | 64.85% | **67.93%** | **+3.08 pp** [+2.15, +4.10] | 1.3217 | **1.1542** | **-0.1676** [-0.2051, -0.1339] |
+| Family-disjoint reserve | 75 | 3,848 | 65.51% | **67.29%** | **+1.78 pp** [+0.76, +2.82] | 1.3108 | **1.1480** | **-0.1627** [-0.2077, -0.1201] |
 
-Closed-loop recovery improves significantly in H1 (+2.15 pp) and H2 (+4.30 pp), but H3, L1 and L3 have small negative point estimates. The standard split therefore supports transferable open-loop recovery and closed-loop likelihood improvements, not a universal closed-loop top-1 gain.
+## Cross-expert sampled protocol
 
-## Recent external non-RAbD panel
+The recent-panel comparison uses 20 samples per antibody at temperature 0.2
+and common random numbers.
 
-- 100 paired antibodies, 200 chains and 5,065 evaluated CDR residues.
-- Release dates: 2024-01-23 through 2026-02-23.
-- No exact-PDB, antibody-90%, or antigen-90% overlap with the historical development collection.
-- Official original AntiFold only; no continued-CE comparator.
+| Expert | Original | Static PoE | IAF | IAF vs original (95% CI) | IAF vs static (95% CI) |
+|---|---:|---:|---:|---:|---:|
+| AbMPNN | 56.50% | 64.32% | **65.85%** | **+9.35 pp** [+7.43, +11.48] | **+1.53 pp** [+0.93, +2.14] |
+| AntiFold | 64.53% | 67.30% | **67.48%** | **+2.95 pp** [+2.07, +3.93] | +0.18 pp [-0.22, +0.56] |
 
-| Method | Recovery | Change vs AntiFold | Native NLL | Perplexity |
-|---|---:|---:|---:|---:|
-| Official AntiFold | 64.85% | 0.00 pp | 1.3217 | 3.750 |
-| AntiBERTy, all-CDR mask | 56.07% | -8.78 pp | 1.5695 | 4.804 |
-| Lower-entropy expert | 66.97% | +2.12 pp | 1.2950 | 3.651 |
-| Linear mixture | 67.99% | +3.14 pp | 1.2410 | 3.459 |
-| CDR-specific PoE | 67.86% | +3.01 pp | 1.1694 | 3.220 |
-| Equal PoE | 68.06% | +3.21 pp | 1.1558 | 3.177 |
-| Fixed PoE, `g=0.59` | **68.03%** | **+3.18 pp** | 1.1723 | 3.230 |
+The corresponding IAF-minus-original native-NLL changes are -0.2825 for
+AbMPNN and -0.1676 for AntiFold. Aggregate CDR-local ABodyBuilder2 fold-back
+RMSD does not show detectable degradation.
 
-The equal-PoE result is a test-set ablation. The primary method remains `g=0.59` because it was selected on development data before test evaluation.
+## Mechanistic controls
 
-## Secondary family-disjoint reserve
+- Matched minus shuffled framework: +5.85 pp [95% CI +5.26, +6.47].
+- High structural uncertainty plus high framework information: +7.41 pp
+  [95% CI +5.53, +9.30].
+- Full framework exceeds local-only and distant-only context by +1.90 and
+  +1.68 pp.
+- Pooled open-loop versus closed-loop IAF: +0.09 pp
+  [95% CI -0.19, +0.36].
 
-| Endpoint | AntiFold | Fixed PoE | Change | 95% CI |
-|---|---:|---:|---:|---:|
-| Open-loop recovery | 65.51% | 66.98% | +1.47 pp | [+0.07, +2.86] |
-| Closed-loop recovery | 65.51% | 66.51% | +1.00 pp | [-0.62, +2.59] |
-| Open-loop NLL | 1.3108 | 1.1649 | -0.1459 | [-0.2012, -0.0916] |
-| Closed-loop NLL | 1.3108 | 1.1925 | -0.1182 | [-0.1823, -0.0558] |
-
-The reserve contains 75 paired antibodies and 3,848 CDR residues. Heavy-chain antibody-90%, antigen-90%, and joint connected components are disjoint; light-chain families are not fully disjoint. It is not described as temporal post-cutoff data.
+IAF improves likelihood relative to static fusion on every frozen cohort.
+Its additional top-1 recovery over static fusion is significant on the public
+benchmark and for AbMPNN under the sampled protocol, but not for AntiFold on
+the recent panel.

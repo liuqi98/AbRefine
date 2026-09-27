@@ -1,62 +1,62 @@
 {
+  "schema_version": 2,
   "method": {
-    "base": "official original AntiFold",
-    "continued_ce_comparator": false,
-    "evolution_expert": "AntiBERTy with every CDR residue masked simultaneously",
-    "fusion": "fixed product of experts",
-    "weight": 0.59,
-    "residue_gate": false
-  },
-  "public_antifold_abmpnn_test_split": {
-    "official_units": 405,
-    "reconstructable_paired_units": 362,
-    "coverage_fraction": 0.8938271605,
-    "residues": 17945,
-    "antifold_recovery": 0.6889400756,
-    "antiberty_recovery": 0.6368468798,
-    "open_loop_recovery": 0.7032971797,
-    "open_loop_difference": 0.0143571041,
-    "open_loop_ci95": [0.0067191985, 0.0219774460],
-    "closed_loop_recovery": 0.6966808988,
-    "closed_loop_difference": 0.0077408233,
-    "closed_loop_ci95": [-0.0009195380, 0.0163653922],
-    "antifold_nll": 1.1728356736,
-    "closed_loop_nll": 1.0841697208,
-    "closed_loop_nll_difference": -0.0886659528,
-    "closed_loop_nll_ci95": [-0.1166654906, -0.0612220087],
+    "name": "AbRefine Information-Aware Fusion",
+    "features": [
+      "structure_entropy",
+      "framework_entropy",
+      "structure_to_framework_kl",
+      "framework_information_kl"
+    ],
+    "architecture": "4-8-1 SiLU",
+    "ensemble_seeds": [41, 42, 43],
+    "development_targets": 62,
+    "development_residues": 3077,
     "native_cdr_tokens_visible": false,
     "test_refitting": false
   },
-  "primary_recent_panel": {
-    "targets": 100,
-    "residues": 5065,
-    "antifold_recovery": 0.648488,
-    "open_loop_recovery": 0.680296,
-    "open_loop_difference": 0.031808,
-    "open_loop_ci95": [0.0206, 0.0436],
-    "closed_loop_recovery": 0.680189,
-    "closed_loop_difference": 0.031701,
-    "closed_loop_ci95": [0.0180, 0.0458]
+  "antiFold_open_loop": {
+    "public_strict": {
+      "targets": 359,
+      "residues": 17816,
+      "base_recovery": 0.6891262043,
+      "iaf_recovery": 0.7116627467,
+      "recovery_difference": 0.0225365424,
+      "recovery_ci95": [0.0166007179, 0.0286235714],
+      "base_nll": 1.1709167924,
+      "iaf_nll": 1.0352475123,
+      "nll_difference": -0.1356692801,
+      "nll_ci95": [-0.1544211298, -0.1178249074]
+    },
+    "recent": {
+      "targets": 100,
+      "residues": 5065,
+      "base_recovery": 0.6484880299,
+      "iaf_recovery": 0.6792504685,
+      "recovery_difference": 0.0307624386,
+      "recovery_ci95": [0.0214968305, 0.0409828999],
+      "base_nll": 1.3217486371,
+      "iaf_nll": 1.1541583847,
+      "nll_difference": -0.1675902524,
+      "nll_ci95": [-0.2051072086, -0.1339227005]
+    },
+    "family_disjoint_reserve": {
+      "targets": 75,
+      "residues": 3848,
+      "base_recovery": 0.6550721276,
+      "iaf_recovery": 0.6729142896,
+      "recovery_difference": 0.0178421620,
+      "recovery_ci95": [0.0076097471, 0.0281567118],
+      "base_nll": 1.3107692411,
+      "iaf_nll": 1.1480420809,
+      "nll_difference": -0.1627271602,
+      "nll_ci95": [-0.2076596594, -0.1200544199]
+    }
   },
-  "secondary_family_disjoint_reserve": {
-    "targets": 75,
-    "residues": 3848,
-    "antifold_recovery": 0.655072,
-    "open_loop_recovery": 0.669808,
-    "open_loop_difference": 0.014736,
-    "open_loop_ci95": [0.000665, 0.028550],
-    "closed_loop_recovery": 0.665081,
-    "closed_loop_difference": 0.010009,
-    "closed_loop_ci95": [-0.006208, 0.025903]
-  },
-  "entropy_stratification_difference": {
-    "low": 0.004403,
-    "middle": 0.036068,
-    "high": 0.056432
-  },
-  "closed_loop_transitions": {
-    "wrong_to_correct": 385,
-    "correct_to_wrong": 227,
-    "net_corrections": 158
+  "framework_controls": {
+    "matched_minus_shuffled_recovery_pp": 5.85,
+    "matched_minus_shuffled_ci95_pp": [5.26, 6.47],
+    "high_uncertainty_high_information_gain_pp": 7.41,
+    "high_uncertainty_high_information_ci95_pp": [5.53, 9.30]
   }
 }

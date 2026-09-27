@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gatefree-antibody-fusion"
-version = "0.1.0"
-description = "Leakage-safe, gate-free AntiFold--AntiBERTy probability fusion for antibody inverse folding"
+version = "0.2.0"
+description = "AbRefine: information-aware structural--framework fusion for antibody CDR design"
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = ["numpy>=1.23"]
@@ -15,10 +15,11 @@ test = ["pytest>=7"]
 
 [project.scripts]
 gatefree-fusion = "gatefree_antibody_fusion.cli:main"
+abrefine = "gatefree_antibody_fusion.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-
+pythonpath = ["src"]
