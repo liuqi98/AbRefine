@@ -187,13 +187,14 @@ AntiBERTy forward pass.
 python scripts/train_iaf.py \
   --structure path/to/development_structure.jsonl \
   --framework path/to/development_framework.jsonl \
-  --output models/iaf_custom.json \
+  --output outputs/iaf_antifold \
   --base-expert AntiFold
 ~~~
 
 Splits are target grouped. Model fitting, feature standardization, empirical
 prior construction, early stopping, and model selection use development
-targets only.
+targets only. The portable ensemble is written to
+outputs/iaf_antifold/iaf_ensemble.json.
 
 ### 3. Run closed-loop design
 
@@ -227,8 +228,8 @@ and reuses the cached framework distribution.
 │   └── iaf_abmpnn.json
 ├── scripts/
 │   ├── train_iaf.py
-│   ├── score_antiberty_allmask.py
-│   └── run_antifold_iaf_closed_loop.py
+│   ├── score_antiberty_all_cdr_mask.py
+│   └── score_antifold_iaf_closed_loop.py
 ├── results/                    # Tables, confidence intervals, and receipts
 ├── docs/figures/               # Model and evaluation figures
 └── tests/                      # Unit and command-line tests
