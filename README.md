@@ -1,218 +1,268 @@
 # AbRefine
 
 [![tests](https://github.com/liuqi98/GateFree-Antibody-Prior-Fusion/actions/workflows/tests.yml/badge.svg)](https://github.com/liuqi98/GateFree-Antibody-Prior-Fusion/actions/workflows/tests.yml)
+![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB)
+![Status](https://img.shields.io/badge/repository-private-lightgrey)
 
-**Framework-conditioned, information-aware refinement for structure-guided antibody CDR design.**
+**Information-aware structural–framework fusion for antibody CDR design.**
 
-AbRefine combines a frozen antibody structure expert with a frozen antibody
-language model while keeping every designed CDR residue hidden. Its
-Information-Aware Fusion (IAF) module learns a residue-specific product-of-
-experts coefficient from only four distributional descriptors. The released
-IAF network has 49 trainable parameters; neither pretrained expert is fine-
-tuned.
+AbRefine refines the residue distributions of a frozen antibody inverse-folding
+model with framework-conditioned information from a frozen antibody language
+model. Its Information-Aware Fusion (IAF) module contains only 49 trainable
+parameters and assigns a different fusion strength to every designed residue.
+Native CDR identities are never supplied as model inputs.
 
-> Repository status: private research code accompanying the AbRefine
-> manuscript. Third-party checkpoints, raw SAbDab structures and native test
-> sequences are not redistributed.
+![AbRefine model overview](docs/figures/model_overview.png)
 
-## Overview
+> The repository name is retained for link stability. The current release is
+> the IAF version described in the manuscript, rather than the earlier
+> fixed-weight or “gate-free” prototype.
 
-For residue `i`, the structure expert provides `P_S`, and AntiBERTy provides a
-framework-conditioned distribution `P_F` after **all CDR residues on the
-corresponding chain are masked simultaneously**. IAF computes
+## At a glance
 
-```text
-phi_i = [H(P_S), H(P_F), KL(P_S || P_F), KL(P_F || P_emp)]
-g_i   = sigmoid(logit(0.59) + MLP_4-8-1(standardize(phi_i)))
-P_R(a) proportional to P_S(a)^(1-g_i) * P_F(a)^g_i
-```
+| Component | Implementation |
+|---|---|
+| Design input | Paired heavy–light backbone and observed framework sequence |
+| Structural expert | AntiFold (primary) or AbMPNN; expert weights remain frozen |
+| Framework expert | AntiBERTy with every CDR on the queried chain masked simultaneously |
+| Information state | Structural entropy, framework entropy, expert disagreement, framework information |
+| Fusion module | 4–8–1 MLP with SiLU activation; 49 trainable parameters |
+| Output | Residue-specific adaptive product-of-experts distribution |
+| Development data | 62 antibodies; complete targets remain grouped |
+| Evaluation | Public benchmark, recent external panel, and family-disjoint reserve |
 
-`P_emp` is a development-only empirical distribution indexed by CDR type and
-normalized loop position. The final prediction is the mean of three IAF
-members trained with seeds 41, 42 and 43.
+## Method
 
-The native CDR sequence is never a model input. Native residues are used only
-for development-set fitting or retrospective evaluation.
+At position i, the frozen structure and framework experts return distributions
+P_S and P_F. IAF summarizes their information state as
 
-## Main evidence
+~~~text
+phi_i = [
+    H(P_S),
+    H(P_F),
+    KL(P_S || P_F),
+    KL(P_F || P_emp)
+]
+
+g_i = sigmoid(logit(0.59) + MLP_4-8-1(standardize(phi_i)))
+
+P_R(a) ∝ P_S(a)^(1-g_i) · P_F(a)^g_i
+~~~
+
+P_emp is an empirical prior estimated only from development antibodies by CDR
+type and normalized loop position. The released predictor averages three IAF
+members trained with seeds 41, 42, and 43. During closed-loop design, each
+refined residue is fed back to the structural expert, whereas the all-CDR-masked
+framework distributions are computed once and cached.
+
+## Results
 
 ### Generalization across independent cohorts
 
 ![Frozen IAF generalization across three cohorts](docs/figures/cross_cohort_generalization.png)
 
-The same frozen AntiFold-based IAF ensemble improves recovery and native NLL
-on all three evaluation cohorts:
+The same frozen AntiFold-based IAF ensemble improves antibody-macro recovery
+and native-residue NLL on all three evaluation cohorts.
 
-| Cohort | Targets | AntiFold | AntiFold + IAF | Recovery change (95% CI) | NLL change (95% CI) |
+| Cohort | Targets | Baseline | Baseline + IAF | Recovery change (95% CI) | NLL change (95% CI) |
 |---|---:|---:|---:|---:|---:|
-| Public benchmark | 359 | 68.91% | **71.17%** | **+2.25 pp** [+1.66, +2.86] | **-0.136** [-0.154, -0.118] |
-| Recent external | 100 | 64.85% | **67.93%** | **+3.08 pp** [+2.15, +4.10] | **-0.168** [-0.205, -0.134] |
-| Family-disjoint reserve | 75 | 65.51% | **67.29%** | **+1.78 pp** [+0.76, +2.82] | **-0.163** [-0.208, -0.120] |
+| Public benchmark | 359 | 68.91% | **71.17%** | **+2.25 pp** [+1.66, +2.86] | **−0.136** [−0.154, −0.118] |
+| Recent external | 100 | 64.85% | **67.93%** | **+3.08 pp** [+2.15, +4.10] | **−0.168** [−0.205, −0.134] |
+| Family-disjoint reserve | 75 | 65.51% | **67.29%** | **+1.78 pp** [+0.76, +2.82] | **−0.163** [−0.208, −0.120] |
 
-Values are antibody-macro averages. Confidence intervals use 10,000 paired
-target-level bootstrap replicates. The public cohort excludes three exact-PDB
-overlaps with development.
+Confidence intervals are based on 10,000 paired target-level bootstrap
+replicates. The public cohort excludes three exact-PDB overlaps with the
+development collection.
 
 ### Portability across structural experts
 
 ![IAF recovery and fold-back evaluation](docs/figures/cross_expert_fidelity.png)
 
-Under the released 20-sample, `T=0.2` protocols on the recent panel:
+Under the released 20-sample, temperature-0.2 protocols on the recent panel:
 
-| Structural expert | Original recovery | Static PoE | IAF | IAF vs original | IAF vs static |
+| Structural expert | Original | Static PoE | IAF | IAF vs original | IAF vs static |
 |---|---:|---:|---:|---:|---:|
 | AbMPNN | 56.50% | 64.32% | **65.85%** | **+9.35 pp** | **+1.53 pp** |
 | AntiFold | 64.53% | 67.30% | **67.48%** | **+2.95 pp** | +0.18 pp |
 
-IAF significantly reduces native NLL for both experts. Fold-back CDR RMSD does
-not show detectable aggregate degradation relative to either original expert.
-For AntiFold, IAF's additional recovery over static PoE is not significant;
-its incremental benefit is primarily improved likelihood.
+IAF reduces native NLL for both experts without detectable aggregate
+degradation in fold-back CDR RMSD. For AntiFold, the extra recovery over static
+PoE is not statistically significant; its additional value is mainly improved
+native likelihood.
 
-### Framework-specific mechanism
+### Why the matched framework matters
 
 ![Matched-framework controls](docs/figures/framework_controls.png)
 
-- Matched frameworks exceed exact-mask-matched shuffled frameworks by
+- Matched frameworks outperform exact-mask-matched shuffled frameworks by
   **+5.85 pp** (95% CI +5.26 to +6.47).
-- The largest gain occurs where the structural distribution is uncertain and
-  the framework distribution is informative: **+7.41 pp**.
-- Removing framework information or replacing it with a generic empirical
-  prior does not reproduce the matched-framework result.
+- The largest refinement gain, **+7.41 pp**, occurs when the structure expert
+  is uncertain and the framework-conditioned distribution is informative.
+- Generic, local-only, or distant-only priors do not reproduce the full
+  matched-framework effect.
+
+Machine-readable summaries and statistical details are available in
+[results/RESULTS.md](results/RESULTS.md) and the accompanying JSON files.
 
 ## Installation
 
-Portable inference requires only NumPy:
+Clone the repository and install the lightweight fusion package:
 
-```bash
-git clone https://github.com/liuqi98/GateFree-Antibody-Prior-Fusion.git
+~~~bash
+git clone git@github.com:liuqi98/GateFree-Antibody-Prior-Fusion.git
 cd GateFree-Antibody-Prior-Fusion
-python -m venv .venv
-source .venv/bin/activate
+python -m pip install -e .
+~~~
+
+The core package requires NumPy. Install the test extra to run the unit suite:
+
+~~~bash
 python -m pip install -e ".[test]"
-pytest -q
-```
+python -m pytest -q
+~~~
 
-Running expert-scoring or training scripts additionally requires PyTorch,
-Transformers, and local installations of the original expert models:
+AntiFold, AbMPNN, and AntiBERTy are external pretrained models and are not
+redistributed here. Their outputs are consumed through per-residue probability
+tables. Expert scoring and IAF training additionally require the packages in
+requirements-models.txt and local installations of the corresponding official
+models.
 
-```bash
-python -m pip install -r requirements-models.txt
-```
+## Quick start
 
-## Quick start: frozen IAF inference
+Apply the released AntiFold IAF ensemble to a per-residue JSONL file:
 
-The amino-acid order is `ACDEFGHIKLMNPQRSTVWY`. Input contracts are described
-in [`docs/DATA_SCHEMA.md`](docs/DATA_SCHEMA.md).
-
-```bash
+~~~bash
 abrefine iaf \
-  --structure examples/structure.jsonl \
-  --evolution examples/evolution.jsonl \
-  --empirical-prior examples/empirical_prior.jsonl \
+  --structure path/to/structure_log_probabilities.jsonl \
+  --evolution path/to/framework_log_probabilities.jsonl \
+  --empirical-prior path/to/empirical_prior.jsonl \
   --model models/iaf_antifold.json \
-  --output /tmp/abrefine_predictions.jsonl
+  --output path/to/refined_predictions.jsonl
+~~~
 
-abrefine evaluate \
-  --input /tmp/abrefine_predictions.jsonl \
-  --output /tmp/abrefine_summary.json
-```
+Use the AbMPNN-calibrated ensemble by replacing the model argument:
 
-Two portable model ensembles are included:
+~~~bash
+abrefine iaf \
+  --structure path/to/structure_log_probabilities.jsonl \
+  --evolution path/to/framework_log_probabilities.jsonl \
+  --empirical-prior path/to/empirical_prior.jsonl \
+  --model models/iaf_abmpnn.json \
+  --output path/to/refined_predictions.jsonl
+~~~
 
-- `models/iaf_antifold.json`: primary AntiFold-based IAF, regularization 0.01.
-- `models/iaf_abmpnn.json`: AbMPNN portability model, regularization 0.
+The three JSONL inputs are joined by patch_id. Their exact required fields and
+amino-acid order are documented in
+[docs/DATA_SCHEMA.md](docs/DATA_SCHEMA.md).
 
-The JSON files contain the feature scaler and all 4-8-1 network parameters;
-inference does not require PyTorch. The legacy fixed-PoE command remains
-available as `abrefine fuse` for baseline reproduction.
+### Released IAF models
 
-## Development-only training
+| File | Structural expert | Intended use |
+|---|---|---|
+| models/iaf_antifold.json | AntiFold | Primary benchmark and closed-loop decoding |
+| models/iaf_abmpnn.json | AbMPNN | Cross-expert transfer and sampling experiments |
 
-`scripts/train_iaf.py` reproduces target-grouped five-fold selection and the
-three-seed final fit from matched development expert outputs:
+The JSON files contain feature-scaling statistics, ensemble weights, seeds,
+architecture metadata, and provenance hashes; they do not contain empirical
+test records or third-party model checkpoints.
 
-```bash
+## Reproducing the workflow
+
+### 1. Score the masked framework
+
+~~~bash
+python scripts/score_antiberty_all_cdr_mask.py \
+  --chains path/to/antibody_chains.jsonl \
+  --model-root path/to/official/AntiBERTy \
+  --output path/to/framework_probabilities.jsonl \
+  --device cuda
+~~~
+
+Every annotated CDR position on the queried chain is masked in the same
+AntiBERTy forward pass.
+
+### 2. Train and export IAF
+
+~~~bash
 python scripts/train_iaf.py \
   --structure path/to/development_structure.jsonl \
-  --framework path/to/development_antiberty_allmask.jsonl \
-  --base-expert AntiFold \
-  --output outputs/iaf_antifold
-```
+  --framework path/to/development_framework.jsonl \
+  --output models/iaf_custom.json \
+  --base-expert AntiFold
+~~~
 
-The script constructs leave-target-out empirical priors inside development,
-selects the anchoring coefficient by out-of-fold target-macro NLL, and exports
-both PyTorch checkpoints and a portable JSON ensemble. Complete antibodies,
-not individual residues, define every fold.
+Splits are target grouped. Model fitting, feature standardization, empirical
+prior construction, early stopping, and model selection use development
+targets only.
 
-## Generate the leakage-safe framework distribution
+### 3. Run closed-loop design
 
-```bash
-python scripts/score_antiberty_all_cdr_mask.py \
-  --chains path/to/chains.jsonl \
-  --model-root path/to/official/AntiBERTy \
-  --output outputs/antiberty_all_cdr_mask.jsonl
-```
-
-The scorer replaces every annotated CDR position on a chain with `[MASK]` in a
-single input. Masking only the current residue while leaving other native CDR
-tokens visible is not a valid AbRefine evaluation.
-
-## Closed-loop design
-
-In closed-loop mode, each IAF-refined residue is written back before the
-structure expert predicts the next position. The language-model distribution
-is computed once from the all-CDR-masked framework and remains fixed. The
-reported pooled recovery is 70.02% open loop and 70.10% closed loop; their
-paired difference is +0.09 pp (95% CI -0.19 to +0.36).
-
-```bash
+~~~bash
 python scripts/score_antifold_iaf_closed_loop.py \
-  --checkpoint path/to/original_antifold_checkpoint.pt \
+  --checkpoint path/to/antifold_checkpoint.pt \
   --inputs path/to/antifold_inputs.csv \
-  --pdb-dir path/to/paired_HL_pdbs \
+  --pdb-dir path/to/pdb_directory \
   --manifest path/to/residue_manifest.jsonl \
-  --priors outputs/antiberty_all_cdr_mask.jsonl \
-  --empirical outputs/empirical_prior.jsonl \
+  --priors path/to/framework_probabilities.jsonl \
+  --empirical path/to/empirical_prior.jsonl \
   --iaf-model models/iaf_antifold.json \
-  --output outputs/closed_loop_iaf.jsonl
-```
+  --output path/to/designs.jsonl \
+  --device cuda:0
+~~~
 
-## Repository layout
+The script recomputes the structural distribution after every selected residue
+and reuses the cached framework distribution.
 
-```text
-src/gatefree_antibody_fusion/
-  fusion.py                 Legacy fixed-PoE baseline
-  iaf.py                    Portable IAF features and ensemble inference
-  io.py                     Leakage and identifier contracts
-  metrics.py                Target-macro metrics and paired bootstrap
-  cli.py                    `abrefine` command-line interface
-models/                     Frozen AntiFold and AbMPNN IAF ensembles
-scripts/                    Expert scoring, export and decoding utilities
-docs/                       Schemas and manuscript figures
-results/                    Frozen machine-readable benchmark summaries
-tests/                      Numerical, leakage and statistics tests
-```
+## Repository map
 
-## Reproducibility rules
+~~~text
+.
+├── src/gatefree_antibody_fusion/
+│   ├── iaf.py                  # IAF inference and model loading
+│   ├── fusion.py               # Product-of-experts utilities
+│   ├── io.py                   # Validated per-residue I/O
+│   └── cli.py                  # abrefine command-line entry point
+├── models/
+│   ├── iaf_antifold.json
+│   └── iaf_abmpnn.json
+├── scripts/
+│   ├── train_iaf.py
+│   ├── score_antiberty_allmask.py
+│   └── run_antifold_iaf_closed_loop.py
+├── results/                    # Tables, confidence intervals, and receipts
+├── docs/figures/               # Model and evaluation figures
+└── tests/                      # Unit and command-line tests
+~~~
 
-- Development/model selection: 62 antibodies and 3,077 CDR residues only.
-- Evaluation targets remain intact during splitting and bootstrap resampling.
-- The public, recent and family-disjoint cohorts are never used for IAF fitting
-  or threshold selection.
-- All designed CDR identities are hidden from both experts.
-- AntiFold, AbMPNN and AntiBERTy parameters remain frozen.
-- The reported IAF prediction averages probability vectors from three seeds.
-- Recovery, NLL, open-loop and closed-loop results are reported separately.
-- Recovery measures native reconstruction, not binding or therapeutic value.
+## Evaluation contract
+
+1. Native CDR residues are hidden from both experts at design time.
+2. AntiBERTy sees the retained framework and simultaneous masks at all CDR
+   positions on the corresponding chain.
+3. Development and evaluation targets are disjoint; complete antibodies stay
+   together during model fitting and bootstrap resampling.
+4. Analysis thresholds, empirical priors, standardization statistics, and IAF
+   weights are frozen before evaluation.
+5. Recovery is macro-averaged by antibody. Confidence intervals resample
+   complete targets rather than individual residues.
+6. Duplicate identifiers, inconsistent region annotations, and records lacking
+   the no-native-CDR assertion are rejected.
+
+## Repository status
+
+This is a private research release accompanying the AbRefine manuscript. Raw
+SAbDab structures, native evaluation sequences, and third-party checkpoints are
+not redistributed. The included scripts, portable IAF weights, summary results,
+and provenance receipts are intended to make the fusion layer auditable and
+reusable once users provide the corresponding model outputs.
 
 ## Citation
 
-The manuscript is currently under preparation. Until a preprint DOI is
-available, cite this repository URL and the exact commit hash used.
+Citation metadata will be updated after the preprint receives a persistent
+identifier. For now, cite the repository and the accompanying AbRefine
+manuscript.
 
-## License and third-party assets
+## License
 
-No open-source license is granted while the manuscript is under preparation;
-all rights are reserved by the repository owner. Third-party models remain
-subject to their original licenses and are not redistributed here.
+Licensing terms for the code will be added before public release. Third-party
+data and pretrained models remain subject to their original terms.
