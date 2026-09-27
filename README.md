@@ -4,7 +4,7 @@
 ![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB)
 ![Status](https://img.shields.io/badge/repository-private-lightgrey)
 
-**Information-aware structural–framework fusion for antibody CDR design.**
+### Framework-Conditioned Refinement for Structure-Guided Antibody CDR Design
 
 AbRefine refines the residue distributions of a frozen antibody inverse-folding
 model with framework-conditioned information from a frozen antibody language
@@ -12,7 +12,27 @@ model. Its Information-Aware Fusion (IAF) module contains only 49 trainable
 parameters and assigns a different fusion strength to every designed residue.
 Native CDR identities are never supplied as model inputs.
 
+[Method](#method) ·
+[Results](#results) ·
+[Installation](#installation) ·
+[Quick start](#quick-start) ·
+[Reproduction](#reproducing-the-workflow) ·
+[Data contract](docs/DATA_SCHEMA.md)
+
 ![AbRefine model overview](docs/figures/model_overview.png)
+
+## Highlights
+
+- **Consistent generalization:** IAF improves recovery by **+2.25 pp** on the
+  public benchmark, **+3.08 pp** on a recent external panel, and **+1.78 pp**
+  on a family-disjoint reserve.
+- **Portable refinement:** the same formulation improves both AntiFold and
+  AbMPNN, with gains of **+2.95 pp** and **+9.35 pp**, respectively, over their
+  original sampled recovery.
+- **Target-specific framework signal:** matched frameworks outperform
+  mask-matched shuffled frameworks by **+5.85 pp**.
+- **Lightweight and modular:** IAF learns only 49 parameters while both
+  pretrained experts remain frozen.
 
 ## At a glance
 
