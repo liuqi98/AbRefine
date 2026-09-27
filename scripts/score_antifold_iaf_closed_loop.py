@@ -14,7 +14,7 @@ import torch
 
 from antifold.antiscripts import get_dataset_dataloader, load_IF1_checkpoint
 from antifold.esm.pretrained import _load_IF1_local
-from gatefree_antibody_fusion.iaf import IAFEnsemble
+from abrefine.iaf import IAFEnsemble
 
 
 AMINO_ACIDS = "ACDEFGHIKLMNPQRSTVWY"

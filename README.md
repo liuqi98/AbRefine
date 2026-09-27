@@ -1,6 +1,6 @@
 # AbRefine
 
-[![tests](https://github.com/liuqi98/GateFree-Antibody-Prior-Fusion/actions/workflows/tests.yml/badge.svg)](https://github.com/liuqi98/GateFree-Antibody-Prior-Fusion/actions/workflows/tests.yml)
+[![tests](https://github.com/liuqi98/AbRefine/actions/workflows/tests.yml/badge.svg)](https://github.com/liuqi98/AbRefine/actions/workflows/tests.yml)
 ![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB)
 ![Status](https://img.shields.io/badge/repository-private-lightgrey)
 
@@ -13,10 +13,6 @@ parameters and assigns a different fusion strength to every designed residue.
 Native CDR identities are never supplied as model inputs.
 
 ![AbRefine model overview](docs/figures/model_overview.png)
-
-> The repository name is retained for link stability. The current release is
-> the IAF version described in the manuscript, rather than the earlier
-> fixed-weight or “gate-free” prototype.
 
 ## At a glance
 
@@ -109,8 +105,8 @@ Machine-readable summaries and statistical details are available in
 Clone the repository and install the lightweight fusion package:
 
 ~~~bash
-git clone git@github.com:liuqi98/GateFree-Antibody-Prior-Fusion.git
-cd GateFree-Antibody-Prior-Fusion
+git clone git@github.com:liuqi98/AbRefine.git
+cd AbRefine
 python -m pip install -e .
 ~~~
 
@@ -218,7 +214,7 @@ and reuses the cached framework distribution.
 
 ~~~text
 .
-├── src/gatefree_antibody_fusion/
+├── src/abrefine/
 │   ├── iaf.py                  # IAF inference and model loading
 │   ├── fusion.py               # Product-of-experts utilities
 │   ├── io.py                   # Validated per-residue I/O

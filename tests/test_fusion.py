@@ -3,10 +3,10 @@ import json
 import numpy as np
 import pytest
 
-from gatefree_antibody_fusion.fusion import fuse_log_probabilities
-from gatefree_antibody_fusion.iaf import IAFEnsemble, IAFMember, information_features
-from gatefree_antibody_fusion.io import validate_pair
-from gatefree_antibody_fusion.metrics import paired_comparison, target_macro
+from abrefine.fusion import fuse_log_probabilities
+from abrefine.iaf import IAFEnsemble, IAFMember, information_features
+from abrefine.io import validate_pair
+from abrefine.metrics import paired_comparison, target_macro
 
 
 def test_product_of_experts_has_exact_endpoints():

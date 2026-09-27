@@ -3,7 +3,7 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "gatefree-antibody-fusion"
+name = "abrefine"
 version = "0.2.0"
 description = "AbRefine: information-aware structural--framework fusion for antibody CDR design"
 readme = "README.md"
@@ -14,8 +14,7 @@ dependencies = ["numpy>=1.23"]
 test = ["pytest>=7"]
 
 [project.scripts]
-gatefree-fusion = "gatefree_antibody_fusion.cli:main"
-abrefine = "gatefree_antibody_fusion.cli:main"
+abrefine = "abrefine.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
