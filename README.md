@@ -73,7 +73,7 @@ framework distributions are computed once and cached.
 
 ## Results
 
-### Generalization across independent cohorts
+### Generalization across evaluation sets
 
 ![Frozen IAF generalization across three cohorts](docs/figures/cross_cohort_generalization.png)
 
@@ -82,9 +82,9 @@ and native-residue NLL on all three evaluation cohorts.
 
 | Cohort | Targets | Baseline | Baseline + IAF | Recovery change (95% CI) | NLL change (95% CI) |
 |---|---:|---:|---:|---:|---:|
-| Public benchmark | 359 | 68.91% | **71.17%** | **+2.25 pp** [+1.66, +2.86] | **−0.136** [−0.154, −0.118] |
-| Recent external | 100 | 64.85% | **67.93%** | **+3.08 pp** [+2.15, +4.10] | **−0.168** [−0.205, −0.134] |
-| Family-disjoint reserve | 75 | 65.51% | **67.29%** | **+1.78 pp** [+0.76, +2.82] | **−0.163** [−0.208, −0.120] |
+| Public-359 | 359 | 68.91% | **71.17%** | **+2.25 pp** [+1.66, +2.86] | **−0.136** [−0.154, −0.118] |
+| Recent-100 | 100 | 64.85% | **67.93%** | **+3.08 pp** [+2.15, +4.10] | **−0.168** [−0.205, −0.134] |
+| Family-75 | 75 | 65.51% | **67.29%** | **+1.78 pp** [+0.76, +2.82] | **−0.163** [−0.208, −0.120] |
 
 Confidence intervals are based on 10,000 paired target-level bootstrap
 replicates. The public cohort excludes three exact-PDB overlaps with the
@@ -94,15 +94,18 @@ development collection.
 
 ![IAF recovery and fold-back evaluation](docs/figures/cross_expert_fidelity.png)
 
-Under the released 20-sample, temperature-0.2 protocols on the recent panel:
+On Recent-100, each method generates 20 samples per antibody at temperature 0.2.
+AntiFold uses fixed-table open-loop sampling; AbMPNN uses autoregressive
+closed-loop sampling. Settings are matched within each structural expert.
 
 | Structural expert | Original | Static PoE | IAF | IAF vs original | IAF vs static |
 |---|---:|---:|---:|---:|---:|
 | AbMPNN | 56.50% | 64.32% | **65.85%** | **+9.35 pp** | **+1.53 pp** |
 | AntiFold | 64.53% | 67.30% | **67.48%** | **+2.95 pp** | +0.18 pp |
 
-IAF reduces native NLL for both experts without detectable aggregate
-degradation in fold-back CDR RMSD. For AntiFold, the extra recovery over static
+IAF reduces generated-context native-residue NLL for both experts. Separate
+deterministic-design fold-back evaluations show no statistically detectable
+increase in locally aligned CDR backbone RMSD. For AntiFold, the extra recovery over static
 PoE is not statistically significant; its additional value is mainly improved
 native likelihood.
 
@@ -283,3 +286,20 @@ manuscript.
 
 Licensing terms for the code will be added before public release. Third-party
 data and pretrained models remain subject to their original terms.
+
+## Evaluation definitions
+
+Public-359 excludes PDB IDs present in the development collection. Recent-100
+contains recent SAbDab structures; Family-75 is a reserve with heavy-chain and
+antigen families disjoint from development. The combined 534 cohort records
+represent 533 unique PDB/H/L pairs and 447 PDB entries, not 534 unique antibodies.
+
++Static denotes fixed-weight AntiBERTy fusion (AntiFold: 0.59; AbMPNN: 0.69),
+selected separately on development data. +IAF denotes residue-specific fusion.
+For shuffled-framework controls, framework probabilities, information features,
+and gates are recomputed while structural predictions and learned parameters
+remain fixed. Recovery is averaged over ten donor assignments within each target.
+The empirical-prior control instead uses development CDR-type/position frequencies
+with its own development-selected static weight (0.43).
+
+Detailed protocols and scoring conventions: [docs/EVALUATION.md](docs/EVALUATION.md).

@@ -6,6 +6,19 @@ from collections import defaultdict
 
 import numpy as np
 
+from .fusion import AMINO_ACIDS, normalized_log_scores
+
+
+def native_residue_nll(log_scores: list[float] | np.ndarray, native: str) -> float:
+    """Score a native label on normalized 20-AA scores at the supplied context.
+
+    Pass untempered retained decoder scores in AMINO_ACIDS order. This scores
+    one residue, not the joint likelihood of the native sequence.
+    """
+    if native not in AMINO_ACIDS or len(native) != 1:
+        raise ValueError("native must be one standard amino acid")
+    return float(-normalized_log_scores(log_scores)[AMINO_ACIDS.index(native)])
+
 
 def target_means(rows: list[dict], field: str) -> dict[str, float]:
     grouped: dict[str, list[float]] = defaultdict(list)
@@ -43,4 +56,3 @@ def paired_comparison(
         "tied_targets": int(np.sum(effects == 0)),
         "worsened_targets": int(np.sum(effects < 0)),
     }
-

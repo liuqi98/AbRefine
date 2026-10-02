@@ -1,0 +1,9 @@
+{
+  "checkpoint_sha256": "fd41b40ee0f51974d73e1acb754cd8acaa36b3327543d5d28bcf4aa4e07b4a1b",
+  "chains": 200,
+  "samples": 4000,
+  "max_original_region_sum_replay_error": 0.0001220703125,
+  "normalization": "base_nll20 = stored_base_nll_full + sum(logsumexp(logp_first20))",
+  "max_abs_mean_region_correction": 0.0056568483511606855,
+  "sequence_generation_unchanged": true
+}

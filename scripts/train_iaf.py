@@ -28,6 +28,8 @@ def read_jsonl(path: Path) -> list[dict]:
 
 
 def log_softmax(values: np.ndarray) -> np.ndarray:
+    if values.shape != (20,) or not np.all(np.isfinite(values)):
+        raise ValueError("expected 20 finite amino-acid log scores")
     shifted = values - np.max(values, axis=-1, keepdims=True)
     return shifted - np.log(np.exp(shifted).sum(axis=-1, keepdims=True))
 
@@ -51,7 +53,7 @@ def assemble(structure_path: Path, framework_path: Path) -> list[dict]:
             "target_id": srow["target_id"],
             "region": srow["region"],
             "native": AA.index(srow["native_amino_acid"]),
-            "zs": log_softmax(np.asarray(srow.get("structure_log_probabilities", srow["log_probabilities"]), dtype=np.float64)),
+            "zs": log_softmax(np.asarray(srow["structure_log_probabilities"] if "structure_log_probabilities" in srow else srow["log_probabilities"], dtype=np.float64)),
             "zf": log_softmax(np.asarray(erow["all_cdr_mask_log_probabilities"], dtype=np.float64)),
         })
     if len({row["patch_id"] for row in output}) != len(output):
